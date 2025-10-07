@@ -26,6 +26,22 @@ Experience = [
     ('7Y+','7 Years'),
 ]
 
+TECH = [
+    ('BD','backend'),
+    ('FD','frontend'),
+    ('FS','fullstack')
+]
+
+ASSIGNER = [
+
+    ('MG','Manager'),
+    ('EP','Employee'),
+    ('OWN','Owner'),
+    ('HR','HR')
+
+]
+
+
 class UserManager(BaseUserManager):
     def create_user(self, email,phone, password=None):
         if not email:
@@ -69,6 +85,7 @@ class User(AbstractBaseUser,PermissionsMixin):
     phone = models.CharField(max_length=18,unique=True)
     passwd = models.CharField(max_length=80,null=False,blank=False)
     role = models.CharField(max_length=20,choices=ROLE_CHOICES,blank=False,null=False)
+    technology = models.CharField(verbose_name='Technology',choices=TECH, blank=True,null=False)
     Experience = models.CharField(verbose_name='Experience',choices=Experience)
     is_staff = models.BooleanField(default=False)
     is_active = models.BooleanField(default=False)
@@ -126,5 +143,34 @@ class NewJoineProfile(models.Model):
 class InternProfile(models.Model):
 
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='Intern')
-    
+    FullName = models.CharField(max_length=250, blank=False,null=False)
+    skills = ArrayField(models.CharField(max_length=50), blank=False, null=False, default=list)
+    Task = models.CharField(max_length=200,null=True)
+    Assigner = models.CharField(max_length=60,blank=False,null=False,choices=ASSIGNER)
+    next_Intrest = ArrayField(models.CharField(max_length=50),blank=False, null=False, default=list)
+    Part_of_Project = models.CharField(max_length=20,null=False,blank=False)
+    created_at = models.DateTimeField(auto_now_add=True)   
+    updated_at = models.DateTimeField(auto_now=True)    
 
+class EmployeeProfile(models.Model):
+
+    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='Employee')
+    salary = models.DecimalField(null=False,blank=False,max_digits=10, decimal_places=2)
+    phone = models.CharField(max_length=25,unique=True,blank=False,null=False)
+    Bio = models.FileField(upload_to='Profile/BioFile',blank=False,null=False,default='PENDING')
+    Project = models.CharField(max_length=90,blank=False,null=False)
+    Project_AssignedDate = models.DateTimeField(blank=False,null=False)
+    Assigner = models.CharField(max_length=60,blank=False,null=False,choices=ASSIGNER)
+    TeamMembers = ArrayField(models.CharField(max_length=50), blank=False, null=False, default=list)
+    skills = ArrayField(models.CharField(max_length=50), blank=False, null=False, default=list)
+    PreviousCompany = models.FileField(upload_to='Profile/PreCom/',default='Null')
+    DayUpdate =  models.CharField(max_length=300,blank=False,null=False,default='PENDING')
+    created_at = models.DateTimeField(auto_now_add=True)   
+    updated_at = models.DateTimeField(auto_now=True)  
+
+class HrProfile(models.Model):
+    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='Profile')
+    FullName = models.CharField(max_length=250, blank=False,null=False)
+    # find HR responsibilities and fill remaining fields do not forget to link newjoine with hr and hr to manager 
+    created_at = models.DateTimeField(auto_now_add=True)   
+    updated_at = models.DateTimeField(auto_now=True)    
