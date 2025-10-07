@@ -1,8 +1,31 @@
 from django.db import models
 from django.contrib.auth.models import AbstractBaseUser,PermissionsMixin,BaseUserManager
 from django.utils import timezone
+from django.contrib.postgres.fields import ArrayField
 
 # Create your models here.
+
+ROLE_CHOICES = [
+
+    ('NJ','NewJoine'),
+    ('Int','Intern'),
+    ('Emp','Employee'),
+    ('HR','HR'),
+    ('MG','Manager'),
+    ('OWN','Owner'),
+
+    ]
+
+Experience = [
+    ('1Y','1 Years'),
+    ('2Y','2 Years'),
+    ('3Y','3 Years'),
+    ('4Y','4 Years'),
+    ('5Y','4 Years'),
+    ('6Y','4 Years'),
+    ('7Y+','7 Years'),
+]
+
 class UserManager(BaseUserManager):
     def create_user(self, email,phone, password=None):
         if not email:
@@ -38,16 +61,7 @@ class UserManager(BaseUserManager):
 
 class User(AbstractBaseUser,PermissionsMixin):
 
-    ROLE_CHOICES = [
 
-        ('NJ','NewJoine'),
-        ('Int','Intern'),
-        ('Emp','Employee'),
-        ('HR','HR'),
-        ('MG','Manager'),
-        ('OWN','Owner'),
-
-    ]
 
     email = models.CharField(verbose_name='Email Address',max_length=60,unique=True)
     first_name = models.CharField(max_length=50,blank=False,null=False)
@@ -55,6 +69,7 @@ class User(AbstractBaseUser,PermissionsMixin):
     phone = models.CharField(max_length=18,unique=True)
     passwd = models.CharField(max_length=80,null=False,blank=False)
     role = models.CharField(max_length=20,choices=ROLE_CHOICES,blank=False,null=False)
+    Experience = models.CharField(verbose_name='Experience',choices=Experience)
     is_staff = models.BooleanField(default=False)
     is_active = models.BooleanField(default=False)
     is_admin = models.BooleanField(default=False)
@@ -66,6 +81,7 @@ class User(AbstractBaseUser,PermissionsMixin):
     is_Manager = models.BooleanField(default=False)
     is_Owner = models.BooleanField(default=False)
     date_joined = models.DateTimeField(default=timezone.now)
+         
 
 
     objects = UserManager()
@@ -89,4 +105,26 @@ class User(AbstractBaseUser,PermissionsMixin):
     
     
    
+
+class NewJoineProfile(models.Model):
+
+    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='NewjJoine')
+    FullName = models.CharField(max_length=250, blank=False,null=False)
+    
+    Resume = models.FileField(upload_to='Profile/Resumes/', null=False, blank=False)
+    AdharCard = models.ImageField(upload_to='Profile/AdharCard/', null=False,blank=False)
+    panCard = models.ImageField(upload_to='Profile/PanCard/', null=False,blank=False)
+    Check = models.ImageField(upload_to='Profile/Checks/',null=False,blank=False)
+    SalarySlip = models.FileField(upload_to='Profile/SalarySlips/',null=True,blank=True)
+
+    Address = models.CharField(max_length=200, null=False,blank=False)
+    skills = ArrayField(models.CharField(max_length=50), blank=False, null=False, default=list)
+    created_at = models.DateTimeField(auto_now_add=True)   
+    updated_at = models.DateTimeField(auto_now=True)  
+
+
+class InternProfile(models.Model):
+
+    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='Intern')
+    
 
