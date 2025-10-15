@@ -1,95 +1,67 @@
-from django import forms
+
 from django.contrib import admin
-from django.contrib.auth.models import Group
+from .models import (
+    User, NewJoineProfile, InternProfile,
+    EmployeeProfile, HrProfile, ManagerProfile, OwnerProfile
+)
 from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
-from django.contrib.auth.forms import ReadOnlyPasswordHashField
-from django.core.exceptions import ValidationError
-from Profile.models import User
-
-# Register your models here.
 
 
-class UserCreationForm(forms.ModelForm):
-
-    """A form for creating new users. Includes all the required
-    fields, plus a repeated password."""
-
-    password1 = forms.CharField(label="Password", widget=forms.PasswordInput)
-    password2 = forms.CharField(
-        label="Password confirmation", widget=forms.PasswordInput
-    )
-
-    class Meta:
-        model = User
-        fields = ["email", "role"]
-
-    def clean_password2(self):
-        # Check that the two password entries match
-        password1 = self.cleaned_data.get("password1")
-        password2 = self.cleaned_data.get("password2")
-        if password1 and password2 and password1 != password2:
-            raise ValidationError("Passwords don't match")
-        return password2
-
-    def save(self, commit=True):
-        # Save the provided password in hashed format
-        user = super().save(commit=False)
-        user.set_password(self.cleaned_data["password1"])
-        if commit:
-            user.save()
-        return user
 
 
-class UserChangeForm(forms.ModelForm):
-    """A form for updating users. Includes all the fields on
-    the user, but replaces the password field with admin's
-    disabled password hash display field.
-    """
-
-    password = ReadOnlyPasswordHashField()
-
-    class Meta:
-        model = User
-        fields = ["email", "password", "phone", "is_active", "is_admin"]
-
-
+@admin.register(User)
 class UserAdmin(BaseUserAdmin):
-    # The forms to add and change user instances
-    form = UserChangeForm
-    add_form = UserCreationForm
-
     
-    # These override the definitions on the base UserAdmin
-    # that reference specific fields on auth.User.
-
-    # The fields to be used in displaying the User model.
-    list_display = ["email", "phone", "is_admin"]
-    list_filter = ["is_admin","is_NewJoine","is_Intern","is_Employee","is_HR","is_Manager","is_Owner"]
+    list_display = ["email", "phone", "role", "is_active", "is_admin",'is_staff']
+    list_filter = ["role", "is_active", "is_admin"]
     fieldsets = [
-        (None, {"fields": ["email", "password","role"]}),
-        ("Personal info", {"fields": ["phone"]}),
-        ("Permissions", {"fields": ["is_admin","is_staff","is_active"]}),
+        (None, {"fields": ["email", "password", "role"]}),
+        ("Personal info", {"fields": ["first_name", "last_name", "phone", "technology", "Experience"]}),
+        ("Permissions", {"fields": ["is_active", "is_staff", "is_admin", "is_superuser"]}),
     ]
-    # add_fieldsets is not a standard ModelAdmin attribute. UserAdmin
-    # overrides get_fieldsets to use this attribute when creating a user.
     add_fieldsets = [
-        (
-            None,
-            {
-                "classes": ["wide"],
-                "fields": ["email", "phone", "password1", "password2"],
-            },
-        ),
+        (None, {
+            "classes": ["wide"],
+            "fields": ["email", "phone", "role", "password1", "password2"],
+        }),
     ]
-    search_fields = ["email"]
+    search_fields = ["email", "phone"]
     ordering = ["email"]
-    filter_horizontal = []
 
 
-# Now register the new UserAdmin...
-admin.site.register(User, UserAdmin)
-# ... and, since we're not using Django's built-in permissions,
-# unregister the Group model from admin.
-admin.site.unregister(Group)
+@admin.register(NewJoineProfile)
+class NewJoineProfileAdmin(admin.ModelAdmin):
+    list_display = ["FullName", "user", "created_at", "updated_at"]
+    search_fields = ["FullName", "user__email"]
+
+
+@admin.register(InternProfile)
+class InternProfileAdmin(admin.ModelAdmin):
+    list_display = ["FullName", "user", "Assigner", "Part_of_Project", "created_at"]
+    search_fields = ["FullName", "user__email"]
+
+
+@admin.register(EmployeeProfile)
+class EmployeeProfileAdmin(admin.ModelAdmin):
+    list_display = ["user", "Project", "Assigner", "salary"]
+    search_fields = ["user__email", "Project"]
+
+
+@admin.register(HrProfile)
+class HrProfileAdmin(admin.ModelAdmin):
+    list_display = ["FullName", "user", "department", "employees_under"]
+    search_fields = ["FullName", "user__email"]
+
+
+@admin.register(ManagerProfile)
+class ManagerProfileAdmin(admin.ModelAdmin):
+    list_display = ["FullName", "user", "department", "Team"]
+    search_fields = ["FullName", "user__email"]
+
+
+@admin.register(OwnerProfile)
+class OwnerProfileAdmin(admin.ModelAdmin):
+    list_display = ["FullName", "Experience"]
+    search_fields = ["FullName"]
 
 
